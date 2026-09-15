@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Englishim - Clases de Inglés </title>
+  <meta name="description" content="Aprende inglés en todos los niveles: Beginner, Intermediate y Advanced.">
+  
+  <!-- Cargar Phaser 3 para el minijuego -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+
+  <style>
+    :root {
+      --clr-bg: #ffffff;
+      --clr-surface: #f7f8fa;
+      --clr-text: #1a1d23;
+      --clr-muted: #5b6472;
+      --clr-primary: #2563eb;
+      --clr-primary-hover: #1d4ed8;
+      --clr-border: #e5e7eb;
+      --radius: 12px;
+      --shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --max-width: 1120px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --clr-bg: #0f1115;
+        --clr-surface: #171a21;
+        --clr-text: #f3f4f6;
+        --clr-muted: #9ca3af;
+        --clr-primary: #3b82f6;
+        --clr-primary-hover: #60a5fa;
+        --clr-border: #2a2f3a;
+        --shadow: 0 5px 13px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      line-height: 1.6;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    .container {
+      width: min(100% - 2rem, var(--max-width));
+      margin-inline: auto;
+    }
+
+    .container-narrow {
+      max-width: 680px;
+    }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--clr-bg);
+      border-bottom: 1px solid var(--clr-border);
+      backdrop-filter: blur(8px);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.9rem 0;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+      color: var(--clr-text);
+    }
+
+    .logo span {
+      color: var(--clr-primary);
+    }
+
+    .site-nav ul {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .site-nav a {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--clr-muted);
+      transition: color 0.2s;
+    }
+
+    .site-nav a:hover {
+      color: var(--clr-text);
+    }
+
+    /* Botones */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--clr-primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--clr-primary-hover);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-color: var(--clr-border);
+      color: var(--clr-text);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--clr-primary);
+      color: var(--clr-primary);
+    }
+
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 5rem 0 4rem;
+    }
+
+    .hero-inner {
+      max-width: 760px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--clr-primary);
+      background: color-mix(in srgb, var(--clr-primary) 12%, transparent);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 6vw, 3.8rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+
+    .lead {
+      font-size: 1.15rem;
+      color: var(--clr-muted);
+      max-width: 560px;
+      margin-bottom: 2rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .stats li {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stats strong {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .stats span {
+      font-size: 0.875rem;
+      color: var(--clr-muted);
+    }
+
+    /* Secciones generales */
+    .section {
+      padding: 5rem 0;
+    }
+
+    .section-alt {
+      background: var(--clr-surface);
+    }
+
+    .section-head {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+
+    .section-head h2 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-head p {
+      color: var(--clr-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Grillas y Tarjetas */
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .card {
+      background: var(--clr-bg);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-icon {
+      margin-bottom: 1rem;
+      width: 56px;
+      height: 40px;
+      overflow: hidden;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .card-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1.15rem;
+    }
+
+    .card p {
+      color: var(--clr-muted);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    /* Sección Dividida y Contenedor del Juego */
+    .split {
+      display: grid;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .split {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .split-media {
+      min-height: 340px;
+      border-radius: var(--radius);
+      background: #1e1b4b;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--clr-border);
+    }
+
+    #game-container canvas {
+      display: block;
+      border-radius: var(--radius);
+      max-width: 100%;
+    }
+
+    .split-body h2 {
+      font-size: clamp(1.75rem, 4vw, 2.25rem);
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .split-body p {
+      color: var(--clr-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--clr-text);
+      font-weight: 500;
+    }
+
+    .checklist li::before {
+      content: "✓";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 50%;
+      background: var(--clr-primary);
+      color: #ffffff;
+      font-size: 0.7rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    /* Contenedor de Contacto WhatsApp Directo */
+    .whatsapp-box {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    /* Footer */
+    .site-footer {
+      border-top: 1px solid var(--clr-border);
+      padding: 2.5rem 0;
+      background: var(--clr-bg);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      text-align: center;
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .footer-links a {
+      color: var(--clr-muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--clr-text);
+    }
+
+    .copyright {
+      color: var(--clr-muted);
+      font-size: 0.85rem;
+      margin: 0;
+    }
+
+    /* Menú hamburguesa (Mobile) */
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-toggle-label {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+
+    .nav-toggle-label span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--clr-text);
+      border-radius: 2px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    @media (max-width: 768px) {
+      .nav-toggle-label {
+        display: flex;
+      }
+
+      .site-nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--clr-bg);
+        border-bottom: 1px solid var(--clr-border);
+        padding: 1rem;
+        display: none;
+      }
+
+      .nav-toggle:checked ~ .site-nav {
+        display: block;
+      }
+
+      .site-nav ul {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+      }
+
+      .site-nav li {
+        border-bottom: 1px solid var(--clr-border);
+      }
+
+      .site-nav li:last-child {
+        border-bottom: none;
+      }
+
+      .site-nav a {
+        display: block;
+        padding: 0.85rem 0.5rem;
+      }
+
+      .nav-toggle:checked + .nav-toggle-label span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+      }
+
+      .nav-toggle:checked + .nav-toggle-label span:nth-child(2) {
+        opacity: 0;
+      }
+
+      .nav-toggle:checked + .nav-toggle-label span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#" class="logo">Englishim<span>.</span></a>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+      <label for="nav-toggle" class="nav-toggle-label" aria-label="Abrir navegación">
+        <span></span><span></span><span></span>
+      </label>
+
+      <nav class="site-nav" aria-label="Navegación principal">
+        <ul>
+          <li><a href="#features">Niveles</a></li>
+          <li><a href="#about">Metodología</a></li>
+          <li><a href="#contact" class="btn btn-sm btn-primary">Comienza</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <p class="eyebrow">Cumple tu meta y accede a las mejores oportunidades</p>
+        <h1>A través de nuestras clases lograrás la fluidez deseada</h1>
+        <p class="lead">Métodos adaptativos diseñados para el perfil de cada estudiante.</p>
+
+        <div class="hero-actions">
+          <a href="#contact" class="btn btn-primary">Contáctanos</a>
+          <a href="#features" class="btn btn-ghost">Ver Niveles</a>
+        </div>
+
+        <ul class="stats">
+          <li><strong>✔️ Horarios flexibles</strong><span>Adaptados a tu ritmo</span></li>
+          <li><strong>✔️ Libros incluidos</strong><span>Material de apoyo</span></li>
+          <li><strong>✔️ Planes personalizados</strong><span>Evaluación previa</span></li>
+          <li><strong>✔️ Enfoque práctico</strong><span>Uso fluido e intencional</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="container">
+        <header class="section-head">
+          <h2>Todo lo que necesitas 📩</h2>
+          <p>Supera las barreras del idioma y comunícate con total seguridad a nivel global.</p>
+        </header>
+
+        <div class="grid grid-3">
+          <article class="card">
+            <div class="card-icon">
+              <!-- Bandera de USA -->
+              <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?fm=jpg&w=600" alt="Bandera de Estados Unidos">
+            </div>
+            <h3>Beginner 🗽🚀</h3>
+            <p>Construye una base sólida en el idioma desde el primer día. Adquiere el vocabulario esencial, las estructuras fundamentales y la confianza necesaria para comunicarte con claridad en situaciones cotidianas.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">
+              <!-- Bandera de Escocia -->
+              <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?fm=jpg&w=600" alt="Bandera de Escocia">
+            </div>
+            <h3>Intermediate 🏔️🧳</h3>
+            <p>Consolida tu fluidez y supera la barrera de la comunicación. Perfecciona el uso de tiempos verbales, amplía tu vocabulario y desarrolla seguridad para entornos académicos o laborales.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">
+              <!-- Bandera de Inglaterra / Reino Unido -->
+              <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?fm=jpg&w=600" alt="Bandera de Reino Unido / Inglaterra">
+            </div>
+            <h3>Advanced 🏆🍸</h3>
+            <p>Alcanza el dominio técnico y la naturalidad en la expresión. Desarrolla precisión gramatical, uso de estructuras complejas y riqueza de vocabulario para comunicarte con elegancia y matiz.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section section-alt">
+      <div class="container split">
+        <!-- Contenedor interactivo del videojuego 2D -->
+        <div class="split-media" id="game-container"></div>
+        
+        <div class="split-body">
+          <h2>Diseñado para tu aprendizaje</h2>
+          <p>Un enfoque directo que prioriza el uso activo del idioma en contextos reales.</p>
+          <ul class="checklist">
+            <li>Clases 100% virtuales</li>
+            <li>Seguimiento constante</li>
+            <li>Metodología adaptativa</li>
+            <li>Enfoque en conversación</li>
+          </ul>
+          <a href="#contact" class="btn btn-primary">Accede a nuestra biblioteca virtual</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <div class="container container-narrow">
+        <header class="section-head">
+          <h2>¿Listo para dar el siguiente paso?</h2>
+          <p>Solicita una evaluación sin compromiso o ponte en contacto para coordinar tu plan de estudio.</p>
+        </header>
+
+        <div class="whatsapp-box">
+          <p class="lead">Haz clic abajo para chatear directamente con nosotros y resolver todas tus dudas al instante.</p>
+          <a href="https://wa.me/573015604879" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block">Chatear por WhatsApp al +57 301 5604879</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <nav aria-label="Navegación de pie de página">
+        <ul class="footer-links">
+          <li><a href="#contact">Contacto</a></li>
+        </ul>
+      </nav>
+      <p class="copyright">&copy; Englishim. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // --- 1. LÓGICA DE INTERFAZ Y NAVEGACIÓN ---
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', e => {
+          const targetId = anchor.getAttribute('href');
+          if (targetId === '#') return;
+
+          const target = document.querySelector(targetId);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            const navToggle = document.getElementById('nav-toggle');
+            if (navToggle?.checked) navToggle.checked = false;
+          }
+        });
+      });
+
+      const navToggle = document.getElementById('nav-toggle');
+      const nav = document.querySelector('.site-nav');
+      const label = document.querySelector('.nav-toggle-label');
+
+      if (navToggle && nav && label) {
+        document.addEventListener('click', e => {
+          if (navToggle.checked && !nav.contains(e.target) && !label.contains(e.target)) {
+            navToggle.checked = false;
+          }
+        });
+      }
+
+      // --- 2. CÓDIGO DEL VIDEOJUEGO 2D (ENDLESS DOG RUNNER) ---
+      const WORDS = [
+        "THE", "BE", "TO", "OF", "AND", "A", "IN", "THAT", "HAVE", "I",
+        "IT", "FOR", "NOT", "ON", "WITH", "HE", "AS", "YOU", "DO", "AT",
+        "THIS", "BUT", "HIS", "BY", "FROM", "THEY", "WE", "SAY", "HER", "SHE",
+        "OR", "AN", "WILL", "MY", "ONE", "ALL", "WOULD", "THERE", "THEIR", "WHAT",
+        "SO", "UP", "OUT", "IF", "ABOUT", "WHO", "GET", "WHICH", "GO", "ME",
+        "WHEN", "MAKE", "CAN", "LIKE", "TIME", "NO", "JUST", "HIM", "KNOW", "TAKE",
+        "PEOPLE", "INTO", "YEAR", "YOUR", "GOOD", "SOME", "COULD", "THEM", "SEE", "OTHER",
+        "THAN", "THEN", "NOW", "LOOK", "ONLY", "COME", "ITS", "OVER", "THINK", "ALSO",
+        "BACK", "AFTER", "USE", "TWO", "HOW", "OUR", "WORK", "FIRST", "WELL", "WAY",
+        "EVEN", "NEW", "WANT", "BECAUSE", "ANY", "THESE", "GIVE", "DAY", "MOST", "US"
+      ];
+
+      const config = {
+        type: Phaser.AUTO,
+        width: 480,
+        height: 320,
+        parent: 'game-container',
+        physics: {
+          default: 'arcade',
+          arcade: {
+            gravity: { y: 700 },
+            debug: false
+          }
+        },
+        scene: {
+          preload: preload,
+          create: create,
+          update: update
+        }
+      };
+
+      let player, platforms, cursors, wasdKeys;
+      let score = 0, wordIndex = 0;
+      let scoreText, btnStart, btnPause;
+      let isPlaying = false, isPaused = false;
+      let mountainsBg, wordsGroup;
+      let nextPlatformX = 0;
+      let touchControls = { left: false, right: false, jump: false };
+
+      new Phaser.Game(config);
+
+      function preload() {
+        // Sprite exacto de Annoying Dog (Pixel Art)
+        const canvas = this.textures.createCanvas('annoying_dog', 28, 24);
+        const ctx = canvas.context;
+
+        const dogMap = [
+          "....XXXX.........XXXX....",
+          "...X....X.......X....X...",
+          "..X......XXXXXXX......X..",
+          "..X...................X..",
+          ".X....XX.........XX....X.",
+          ".X....XX.........XX....X.",
+          "X.......................X",
+          "X........XXXXXX.........X",
+          "X........X....X.........X",
+          "X........XXXXXX.........X",
+          "X......................X.",
+          ".X....................X..",
+          ".X...................X...",
+          "..X.................X....",
+          "..X.................XXXX.",
+          ".X......................X",
+          ".X......................X",
+          "X...XX............XX....X",
+          "X..X..X..........X..X...X",
+          "X..X..X..........X..X..X.",
+          ".XX....XX.........XX...X.",
+          ".........X...........XX..",
+          "..........XX............"
+        ];
+
+        for (let r = 0; r < dogMap.length; r++) {
+          for (let c = 0; c < dogMap[r].length; c++) {
+            if (dogMap[r][c] === 'X') {
+              ctx.fillStyle = '#000000';
+              ctx.fillRect(c, r, 1, 1);
+            }
+          }
+        }
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(4, 3, 19, 14);
+        ctx.fillRect(2, 6, 22, 10);
+        ctx.fillRect(18, 14, 8, 4);
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(7, 5, 2, 2);   
+        ctx.fillRect(16, 5, 2, 2);  
+        ctx.fillRect(10, 8, 5, 2);  
+        ctx.fillRect(12, 10, 1, 3);
+        ctx.fillRect(11, 12, 3, 1);
+
+        canvas.refresh();
+
+        // Textura Fondo Montañas
+        const bgCanvas = this.textures.createCanvas('mountains', 480, 320);
+        const bgCtx = bgCanvas.context;
+
+        const grad = bgCtx.createLinearGradient(0, 0, 0, 320);
+        grad.addColorStop(0, '#1e1b4b');
+        grad.addColorStop(1, '#4338ca');
+        bgCtx.fillStyle = grad;
+        bgCtx.fillRect(0, 0, 480, 320);
+
+        bgCtx.fillStyle = '#312e81';
+        bgCtx.beginPath();
+        bgCtx.moveTo(0, 320);
+        bgCtx.lineTo(0, 180);
+        bgCtx.lineTo(80, 120);
+        bgCtx.lineTo(180, 200);
+        bgCtx.lineTo(280, 100);
+        bgCtx.lineTo(380, 190);
+        bgCtx.lineTo(480, 130);
+        bgCtx.lineTo(480, 320);
+        bgCtx.fill();
+
+        bgCtx.fillStyle = '#1e1b4b';
+        bgCtx.beginPath();
+        bgCtx.moveTo(0, 320);
+        bgCtx.lineTo(0, 220);
+        bgCtx.lineTo(120, 150);
+        bgCtx.lineTo(220, 240);
+        bgCtx.lineTo(340, 160);
+        bgCtx.lineTo(480, 250);
+        bgCtx.lineTo(480, 320);
+        bgCtx.fill();
+
+        bgCanvas.refresh();
+      }
+
+      function create() {
+        const scene = this;
+
+        mountainsBg = scene.add.tileSprite(240, 160, 480, 320, 'mountains');
+        platforms = scene.physics.add.staticGroup();
+
+        // Plataforma inicial
+        createPlatform(scene, 0, 290, 600);
+        nextPlatformX = 600;
+
+        player = scene.physics.add.sprite(80, 200, 'annoying_dog');
+        player.setScale(1.4);
+        player.setCollideWorldBounds(false);
+        scene.physics.add.collider(player, platforms);
+
+        cursors = scene.input.keyboard.createCursorKeys();
+        wasdKeys = scene.input.keyboard.addKeys({
+          up: Phaser.Input.Keyboard.KeyCodes.W,
+          left: Phaser.Input.Keyboard.KeyCodes.A,
+          right: Phaser.Input.Keyboard.KeyCodes.D
+        });
+
+        // Grupo estático para que las palabras queden flotando en el aire sin caerse
+        wordsGroup = scene.physics.add.staticGroup();
+
+        // Crear palabras iniciales en el tramo inicial
+        for (let i = 150; i < 550; i += 80) {
+          spawnSingleWord(scene, i, Phaser.Math.Between(120, 220));
+        }
+
+        scene.physics.add.overlap(player, wordsGroup, (p, wordObj) => {
+          wordObj.destroy();
+          score += 10;
+          scoreText.setText('Score: ' + score);
+        });
+
+        scene.cameras.main.startFollow(player, true, 0.1, 0, -120, 50);
+
+        scoreText = scene.add.text(16, 16, 'Score: 0', {
+          font: 'bold 14px sans-serif',
+          fill: '#ffffff',
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          padding: { x: 8, y: 4 }
+        }).setScrollFactor(0);
+
+        btnStart = scene.add.text(240, 150, '▶ INICIAR JUEGO', {
+          font: 'bold 16px sans-serif',
+          fill: '#ffffff',
+          backgroundColor: '#2563eb',
+          padding: { x: 16, y: 10 }
+        }).setOrigin(0.5).setInteractive().setScrollFactor(0);
+
+        btnPause = scene.add.text(420, 24, '⏸ PAUSA', {
+          font: 'bold 12px sans-serif',
+          fill: '#ffffff',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          padding: { x: 8, y: 4 }
+        }).setOrigin(0.5).setInteractive().setScrollFactor(0).setVisible(false);
+
+        btnStart.on('pointerdown', () => {
+          if (!isPlaying) {
+            isPlaying = true;
+            btnStart.setVisible(false);
+            btnPause.setVisible(true);
+            scene.physics.resume();
+          } else if (isPaused) {
+            isPaused = false;
+            btnStart.setVisible(false);
+            btnPause.setText('⏸ PAUSA');
+            scene.physics.resume();
+          }
+        });
+
+        btnPause.on('pointerdown', () => {
+          if (isPlaying && !isPaused) {
+            isPaused = true;
+            scene.physics.pause();
+            btnStart.setText('▶ REANUDAR').setVisible(true);
+            btnPause.setText('PAUSADO');
+          }
+        });
+
+        createMobileControls(scene);
+        scene.physics.pause();
+      }
+
+      function update() {
+        if (!isPlaying || isPaused) return;
+
+        mountainsBg.tilePositionX = player.x * 0.2;
+
+        const isLeft = cursors.left.isDown || wasdKeys.left.isDown || touchControls.left;
+        const isRight = cursors.right.isDown || wasdKeys.right.isDown || touchControls.right;
+        const isJump = cursors.up.isDown || wasdKeys.up.isDown || touchControls.jump;
+
+        let baseSpeed = 130;
+
+        if (isLeft) {
+          player.setVelocityX(-80);
+          player.setFlipX(true);
+        } else if (isRight) {
+          player.setVelocityX(baseSpeed + 90);
+          player.setFlipX(false);
+        } else {
+          player.setVelocityX(baseSpeed);
+          player.setFlipX(false);
+        }
+
+        if (isJump && player.body.touching.down) {
+          player.setVelocityY(-350);
+        }
+
+        if (player.x + 400 > nextPlatformX) {
+          spawnSegment(this);
+        }
+
+        if (player.y > 350) {
+          player.setPosition(player.x - 150, 100);
+          player.setVelocity(0, 0);
+        }
+      }
+
+      function createPlatform(scene, x, y, width) {
+        const p = scene.add.rectangle(x + width/2, y, width, 24, 0x1e293b).setStrokeStyle(1, 0x3b82f6);
+        scene.physics.add.existing(p, true);
+        platforms.add(p);
+      }
+
+      // Generar palabras estáticas e inamovibles en el aire
+      function spawnSingleWord(scene, x, y) {
+        const wordText = WORDS[wordIndex % WORDS.length];
+        wordIndex++;
+
+        const width = wordText.length * 10 + 16;
+        const height = 24;
+
+        const container = scene.add.container(x, y);
+
+        // Caja blanca
+        const bg = scene.add.rectangle(0, 0, width, height, 0xffffff, 1);
+        bg.setStrokeStyle(2, 0x2563eb);
+
+        // Texto azul oscuro
+        const txt = scene.add.text(0, 0, wordText, {
+          font: 'bold 12px sans-serif',
+          fill: '#0f172a'
+        }).setOrigin(0.5);
+
+        container.add([bg, txt]);
+
+        // Añadir física como objeto estático (isStatic = true para que no caiga jamás)
+        scene.physics.add.existing(container, true);
+        wordsGroup.add(container);
+      }
+
+      function spawnSegment(scene) {
+        const gap = Phaser.Math.Between(30, 60);
+        const platformWidth = Phaser.Math.Between(250, 450);
+        const startX = nextPlatformX + gap;
+
+        createPlatform(scene, startX, 290, platformWidth);
+
+        // Crear una palabra cada 65px
+        const numWords = Math.floor(platformWidth / 65);
+        for (let i = 0; i < numWords; i++) {
+          const wordX = startX + 30 + i * 65;
+          const wordY = Phaser.Math.Between(110, 220); // Alturas para saltar y alcanzarlas
+          spawnSingleWord(scene, wordX, wordY);
+        }
+
+        nextPlatformX = startX + platformWidth;
+      }
+
+      function createMobileControls(scene) {
+        const btnStyle = { font: 'bold 16px sans-serif', fill: '#ffffff' };
+
+        const leftBtn = scene.add.rectangle(35, 290, 45, 35, 0x000000, 0.5).setInteractive().setScrollFactor(0);
+        scene.add.text(35, 290, '◄', btnStyle).setOrigin(0.5).setScrollFactor(0);
+        leftBtn.on('pointerdown', () => touchControls.left = true);
+        leftBtn.on('pointerup', () => touchControls.left = false);
+
+        const rightBtn = scene.add.rectangle(90, 290, 45, 35, 0x000000, 0.5).setInteractive().setScrollFactor(0);
+        scene.add.text(90, 290, '►', btnStyle).setOrigin(0.5).setScrollFactor(0);
+        rightBtn.on('pointerdown', () => touchControls.right = true);
+        rightBtn.on('pointerup', () => touchControls.right = false);
+
+        const jumpBtn = scene.add.rectangle(435, 290, 55, 35, 0x000000, 0.5).setInteractive().setScrollFactor(0);
+        scene.add.text(435, 290, '▲', btnStyle).setOrigin(0.5).setScrollFactor(0);
+        jumpBtn.on('pointerdown', () => touchControls.jump = true);
+        jumpBtn.on('pointerup', () => touchControls.jump = false);
+      }
+    })();
+  </script>
+</body>
+</html>
